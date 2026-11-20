@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DetourBG · Презентация (FMI Open Data Hackathon)</title>
+  <style>
+    :root {
+      --primary: #184C38;
+      --primary-light: #2E8B57;
+      --accent: #D4A017;
+      --bg: #F4F7F5;
+      --surface: #FFFFFF;
+      --text: #1F2937;
+      --muted: #6B7280;
+      --border: #E5E7EB;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      user-select: none;
+    }
+    header.deck-bar {
+      height: 48px;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .deck-bar .brand { font-weight: 700; letter-spacing: 0.5px; }
+    .deck-bar .controls { display: flex; gap: 12px; align-items: center; }
+    .btn-pill {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.15s;
+    }
+    .btn-pill:hover { background: rgba(255,255,255,0.3); }
+
+    main.deck-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 40px;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      max-width: 1100px;
+      height: 640px;
+      background: var(--surface);
+      border-radius: 20px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.08);
+      border: 1px solid var(--border);
+      padding: 48px 56px;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      animation: fadeIn 0.25s ease-out;
+    }
+    .slide.active { display: flex; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .tag-badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary-light);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .slide-title {
+      font-size: 38px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.15;
+      margin-bottom: 8px;
+    }
+    .slide-sub {
+      font-size: 18px;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+
+    ul.bullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    ul.bullets li {
+      font-size: 21px;
+      line-height: 1.45;
+      color: var(--text);
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    ul.bullets li::before {
+      content: "•";
+      color: var(--primary-light);
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .highlight-box {
+      background: #F0F7F4;
+      border: 1.5px solid var(--primary-light);
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    /* Speaker Notes Panel */
+    aside.speaker-notes {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 1000px;
+      background: rgba(24, 76, 56, 0.95);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      padding: 16px 24px;
+      border-radius: 12px;
+      font-size: 15px;
+      line-height: 1.5;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      z-index: 100;
+      transition: opacity 0.2s;
+    }
+    aside.speaker-notes.hidden { display: none; }
+    aside.speaker-notes strong { color: var(--accent); }
+
+    /* Footer Progress */
+    footer.deck-footer {
+      height: 40px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .progress-bar-wrap {
+      width: 240px;
+      height: 6px;
+      background: #E5E7EB;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: var(--primary-light);
+      width: 12.5%;
+      transition: width 0.2s;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="deck-bar">
+    <div class="brand">DetourBG · FMI Open Data Hackathon</div>
+    <div class="controls">
+      <span id="slide-num">Слайд 1 / 8</span>
+      <button class="btn-pill" id="btn-notes">Опорни точки (N)</button>
+      <button class="btn-pill" id="btn-prev">← Назад</button>
+      <button class="btn-pill" id="btn-next">Напред →</button>
+    </div>
+  </header>
+
+  <main class="deck-container">
+
+    <!-- Слайд 1 -->
+    <section class="slide active" data-notes="Здравейте! Ние представяме DetourBG – интелигентен асистент за пътуване, който превръща транзитното шофиране в безопасно туристическо преживяване. Задавате маршрут и свободно време, а системата избира най-добрите спирки без лутане.">
+      <div>
+        <span class="tag-badge">FMI Open Data Hackathon · 20.11.2026</span>
+        <h1 class="slide-title">DetourBG</h1>
+        <p class="slide-sub">Интелигентни отбивки и безопасно пътуване из България</p>
+        <ul class="bullets">
+          <li>Открива най-добрите спирки за туризъм, спорт и храна по вашия маршрут.</li>
+          <li>Съобразява всяка отбивка с наличния ви бюджет от време.</li>
+          <li>Следи пътната обстановка и времето на всеки 15 км в реално време.</li>
+        </ul>
+      </div>
+      <div class="highlight-box">★ Екип: [Имената на екипа] · Работещ прототип на http://localhost:8000</div>
+    </section>
+
+    <!-- Слайд 2 -->
+    <section class="slide" data-notes="Когато пътуваме, бързаме по магистралата и подминаваме страхотни места, защото не знаем за тях или нямаме време да търсим. Нито една стандартна навигация не съобразява междинни спирки според наличното време и опасностите по пътя.">
+      <div>
+        <span class="tag-badge">Въпрос 1: Кой го има и колко е голям</span>
+        <h2 class="slide-title">Проблемът</h2>
+        <p class="slide-sub">Магистралното бързане и невидимите богатства край пътя</p>
+        <ul class="bullets">
+          <li><b>3 800+ официални забележителности</b> остават невидими за транзитно преминаващите.</li>
+          <li>Навигациите (Google Maps, Waze) водят само по най-бързия път без туристически контекст.</li>
+          <li>Шофьорите често попадат неочаквано на свлачища, силни бури или затворени участъци.</li>
+          <li>Липсва инструмент за планиране на междинни спирки според личен лимит от време.</li>
+        </ul>
+      </div>
+      <div class="highlight-box">★ Над 3 800 държавни обекта се подминават ежедневно от пътуващите</div>
+    </section>
+
+    <!-- Слайд 3 -->
+    <section class="slide" data-notes="Нашата цел за днес беше ясна: работещо приложение, в което шофьорът казва „Имам 1 час за спирки“, а системата му подготвя точния маршрут с отбивки и гаранция за безопасни условия.">
+      <div>
+        <span class="tag-badge">Въпрос 2: Какво искахте да постигнете днес</span>
+        <h2 class="slide-title">Целта</h2>
+        <p class="slide-sub">Ясен фокус, изпълнен докрай</p>
+        <ul class="bullets">
+          <li>Шофьорът задава: <b>„Имам свободен 1 час за почивка по пътя“</b>.</li>
+          <li>Системата мигновено намира най-подходящите и безопасни спирки в коридор около пътя.</li>
+          <li>При опасност по пътя автоматично предлага проверен обходен маршрут.</li>
+          <li>С един клик маршрутът и спирките се отварят в <b>Google Maps</b> или <b>Waze</b>.</li>
+        </ul>
+      </div>
+      <div class="highlight-box">★ 1 час бюджет = оптимални спирки + точен график + сигурност на пътя</div>
+    </section>
+
+    <!-- Слайд 4 -->
+    <section class="slide" data-notes="Обединихме официалния регистър на Министерството на туризма с OpenStreetMap, като изчистихме данните до 7 300 обекта. С OSRM изчисляваме отбивката в секунди, а с Open-Meteo и Meteoalarm проверяваме условията на всеки 15 км от маршрута.">
+      <div>
+        <span class="tag-badge">Въпрос 3: Как работи и какви данни използва</span>
+        <h2 class="slide-title">Решението и данните</h2>
+        <p class="slide-sub">Интелигентен пространствен и метеорологичен конвейер</p>
+        <ul class="bullets">
+          <li><b>data.egov.bg (3 847 обекта) + OpenStreetMap + Wikidata:</b> 7 334 точки в пространствен индекс (STRtree).</li>
+          <li><b>OSRM:</b> пресмята точни секунди за отбивка (отиване + връщане) + престой.</li>
+          <li><b>Open-Meteo & Meteoalarm:</b> прогноза, силен дъжд/сняг и официални кодове на всеки 15 км.</li>
+          <li><b>Алгоритъм за свлачища:</b> засича обилни валежи (&ge;40 мм / 48 ч) в планински участъци (&ge;400 м н.в.).</li>
+          <li><b>Регистри на МТ за туризъм:</b> категоризирани заведения за обяд/вечеря и хотели.</li>
+        </ul>
+      </div>
+      <div class="highlight-box">★ 5 независими отворени източника, обединени в реално време</div>
+    </section>
+
+    <!-- Слайд 5 -->
+    <section class="slide" data-notes="Ето приложението на живо. Задаваме пътуване и 1 час бюджет: виждате коридора с обекти, автоматично подбраните спирки с време за отбивка и престой, както и предложения за обяд. При опасност системата предлага обход, а с един клик маршрутът е в телефона.">
+      <div>
+        <span class="tag-badge">Въпрос 4: Какво работи в края на деня</span>
+        <h2 class="slide-title">Демо на живо</h2>
+        <p class="slide-sub">Какво ще покажем на журито на http://localhost:8000</p>
+        <ul class="bullets">
+          <li><b>Маршрут:</b> Велико Търново &rarr; Габрово (или София &rarr; Варна).</li>
+          <li><b>Подреждане на интереси:</b> хайкинг, история, природа с промяна на приоритета.</li>
+          <li><b>Спирки с точно време:</b> напр. <i>+44 мин (29 мин отбивка + 15 мин престой)</i>.</li>
+          <li><b>Условия на пътя:</b> карта с опасни участъци и препоръчан безопасен обход.</li>
+          <li><b>Храна и нощувка:</b> препоръка за обяд около 12:30 край пътя.</li>
+          <li><b>Експорт:</b> бутони за директно пускане в Google Maps и Waze.</li>
+        </ul>
+      </div>
+      <div class="highlight-box">★ Пълна демонстрация на живо: планиране, обход, обяд и GPS навигация</div>
+    </section>
+
+    <!-- Слайд 6 -->
+    <section class="slide" data-notes="Научихме, че почти половината държавни данни бяха само с център на населено място – ние ги свързахме с точни координати. Доказахме, че с отбивка от само 20-30 минути хората преоткриват България, а местните обекти печелят реални туристи.">
+      <div>
+        <span class="tag-badge">Въпрос 5: Какво показват данните и решението</span>
+        <h2 class="slide-title">Резултати в числа</h2>
+        <p class="slide-sub">Реално въздействие върху вътрешния туризъм и безопасността</p>
+        <ul class="bullets">
+          <li><b>7 334 обекта:</b> култура, природа, хайкинг маршрути, хижи и спортни дестинации.</li>
+          <li><b>44% от държавните координати</b> бяха приблизителни &rarr; коригирани чрез OSM съпоставяне.</li>
+          <li><b>15–30 минути отбивка</b> превръщат скучното каране в запомнящо се преживяване.</li>
+          <li><b>Подкрепа за местния бизнес:</b> заведенията и хотелите край пътя получават реални посетители.</li>
+        </ul>
+      </div>
+      <div class="highlight-box">★ 7 334 валидирани обекта · 4 333 с точни GPS координати · 100% сигурен план</div>
+    </section>
+
+    <!-- Слайд 7 -->
+    <section class="slide" data-notes="Ако имахме още време, първата стъпка е директна интеграция с потока на АПИ за състоянието на проходите, както и мобилно приложение с пълна офлайн функционалност за планинските райони.">
+      <div>
+        <span class="tag-badge">Въпрос 6: Какво следва</span>
+        <h2 class="slide-title">Какво следва</h2>
+        <p class="slide-sub">Развитие при още една седмица или месец</p>
+        <ul class="bullets">
+          <li><b>Интеграция с АПИ (traffic.api.bg):</b> данни за затворени проходи и ремонти на живо през DATEX II.</li>
+          <li><b>Мобилно приложение (iOS / Android):</b> с пълни офлайн карти и GPS за райони без обхват.</li>
+          <li><b>Специализирани маршрути за колоездене и походи:</b> профил на денивелация и чешми.</li>
+          <li><b>Геймификация:</b> дигитални печати за 100-те национални туристически обекта.</li>
+        </ul>
+      </div>
+      <div class="highlight-box">★ Официални пътни данни на живо + пълен планински офлайн режим</div>
+    </section>
+
+    <!-- Слайд 8 -->
+    <section class="slide" data-notes="Благодарим ви за вниманието! Готови сме да отговорим на всички въпроси на журито.">
+      <div>
+        <span class="tag-badge">FMI Open Data Hackathon · 2026</span>
+        <h2 class="slide-title">Благодарим за вниманието!</h2>
+        <p class="slide-sub">DetourBG – Пътувай безопасно, преоткрий България!</p>
+        <ul class="bullets">
+          <li><b>Приложение:</b> <a href="http://localhost:8000" target="_blank" style="color:var(--primary-light);">http://localhost:8000</a></li>
+          <li><b>API документация:</b> <a href="http://localhost:8000/docs" target="_blank" style="color:var(--primary-light);">http://localhost:8000/docs</a></li>
+          <li><b>Отворени данни:</b> data.egov.bg, OpenStreetMap, Wikidata, Open-Meteo, Meteoalarm</li>
+        </ul>
+      </div>
+      <div class="highlight-box">★ Готови сме за въпросите на журито!</div>
+    </section>
+
+  </main>
+
+  <!-- Floating Speaker Notes Box -->
+  <aside class="speaker-notes" id="notes-box">
+    <strong>ОПОРНИ ТОЧКИ ЗА ГОВОРЕНЕ:</strong>
+    <p id="notes-text">Здравейте! Ние представяме DetourBG...</p>
+  </aside>
+
+  <footer class="deck-footer">
+    <div>Навигация: <b>←</b> и <b>→</b> (или интервал) · <b>F</b>: цял екран · <b>N</b>: опорни точки</div>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progress"></div>
+      </div>
+      <span id="footer-counter">1 / 8</span>
+    </div>
+  </footer>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const progress = document.getElementById('progress');
+    const slideNum = document.getElementById('slide-num');
+    const footerCounter = document.getElementById('footer-counter');
+    const notesBox = document.getElementById('notes-box');
+    const notesText = document.getElementById('notes-text');
+    let current = 0;
+
+    function update() {
+      slides.forEach((s, i) => s.classList.toggle('active', i === current));
+      const pct = ((current + 1) / slides.length) * 100;
+      progress.style.width = pct + '%';
+      slideNum.textContent = `Слайд ${current + 1} / ${slides.length}`;
+      footerCounter.textContent = `${current + 1} / ${slides.length}`;
+      notesText.textContent = slides[current].dataset.notes || '';
+    }
+
+    function next() { if (current < slides.length - 1) { current++; update(); } }
+    function prev() { if (current > 0) { current--; update(); } }
+
+    document.getElementById('btn-next').addEventListener('click', next);
+    document.getElementById('btn-prev').addEventListener('click', prev);
+    document.getElementById('btn-notes').addEventListener('click', () => notesBox.classList.toggle('hidden'));
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { next(); }
+      else if (e.key === 'ArrowLeft') { prev(); }
+      else if (e.key === 'n' || e.key === 'N') { notesBox.classList.toggle('hidden'); }
+      else if (e.key === 'f' || e.key === 'F') {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+      }
+    });
+
+    update();
+  </script>
+</body>
+</html>

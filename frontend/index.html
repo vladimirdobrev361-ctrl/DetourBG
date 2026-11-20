@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DetourBG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo" href="#route">
+      <span class="logo-mark" data-icon="route"></span>
+      <span>DetourBG</span>
+    </a>
+    <nav>
+      <a href="#route">Маршрут</a>
+      <a href="#stops">Спирки</a>
+      <a href="#conditions">Условия</a>
+      <a href="#food">Храна</a>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <div class="col-main">
+      <section class="intro">
+        <h1>Планирай пътуване</h1>
+        <p>Добави спирки по пътя и виж кога ще пристигнеш.</p>
+      </section>
+
+      <form id="plan-form" class="card" autocomplete="off">
+        <h2 id="route">Твоят маршрут</h2>
+        <div class="endpoints">
+          <div class="fields">
+            <label class="field">
+              <span class="label">Начална точка</span>
+              <span class="control">
+                <span class="lead" data-icon="pin"></span>
+                <select id="origin"></select>
+                <span class="chev" data-icon="chevron"></span>
+              </span>
+            </label>
+            <label class="field">
+              <span class="label">Дестинация</span>
+              <span class="control">
+                <span class="lead" data-icon="pin"></span>
+                <select id="destination"></select>
+                <span class="chev" data-icon="chevron"></span>
+              </span>
+            </label>
+          </div>
+          <button type="button" id="swap" class="icon-btn" aria-label="Размени началото и дестинацията" data-icon="swap"></button>
+        </div>
+        <label class="field">
+          <span class="label">Тръгване</span>
+          <span class="control">
+            <span class="lead" data-icon="calendar"></span>
+            <input type="datetime-local" id="depart">
+          </span>
+        </label>
+        <p class="hint" id="pick-hint" hidden>Кликнете на картата, за да изберете точка.</p>
+
+        <details class="prefs" open>
+          <summary>Предпочитания</summary>
+          <div class="prefs-body">
+            <label class="field">
+              <span class="label">Време за спирки <b class="pill" id="budget-val">2 ч</b></span>
+              <input type="range" id="budget" min="0" max="300" step="15" value="120">
+            </label>
+            <div class="two">
+              <label class="field">
+                <span class="label">Коридор около пътя <b class="pill" id="corridor-val">8 км</b></span>
+                <input type="range" id="corridor" min="2" max="20" step="1" value="8">
+              </label>
+              <label class="field">
+                <span class="label">Престой</span>
+                <span class="control">
+                  <span class="lead" data-icon="clock"></span>
+                  <select id="stay">
+                    <option value="">по вида на обекта</option>
+                    <option value="15">15 мин</option>
+                    <option value="30">30 мин</option>
+                    <option value="45">45 мин</option>
+                    <option value="60">1 ч</option>
+                    <option value="90">1 ч 30 мин</option>
+                  </select>
+                  <span class="chev" data-icon="chevron"></span>
+                </span>
+              </label>
+            </div>
+            <div class="field">
+              <span class="label">Интереси</span>
+              <span class="muted small">Подредете ги по важност — плъзнете или ползвайте стрелките. Първият тежи най-много.</span>
+              <ol id="priority" class="priority" aria-label="Избрани интереси по важност"></ol>
+              <div id="interest-pool" class="pool" aria-label="Добави интерес"></div>
+            </div>
+            <label class="field">
+              <span class="label">Време за обяд / вечеря</span>
+              <span class="control">
+                <span class="lead" data-icon="clock"></span>
+                <select id="meal">
+                  <option value="30">30 мин</option>
+                  <option value="45" selected>45 мин</option>
+                  <option value="60">1 ч</option>
+                  <option value="90">1 ч 30 мин</option>
+                </select>
+                <span class="chev" data-icon="chevron"></span>
+              </span>
+            </label>
+          </div>
+        </details>
+
+        <button type="submit" class="primary" id="plan-btn"><span data-icon="route"></span><span>Изчисли маршрута</span></button>
+      </form>
+
+      <section id="summary" class="card" hidden></section>
+      <section id="conditions-card" class="card" hidden></section>
+      <section id="stops-card" class="card" hidden></section>
+      <section id="food-card" class="card" hidden></section>
+
+      <footer class="muted small">
+        Данни: регистър на туристическите забележителности (Министерство на туризма, data.egov.bg), © OpenStreetMap,
+        Wikidata, Open-Meteo, Meteoalarm (НИМХ), OSRM. · <a href="/docs" target="_blank">API</a> ·
+        <a href="/api/stats" target="_blank">статистика</a>
+      </footer>
+    </div>
+
+    <aside class="col-map">
+      <section class="card map-card">
+        <div class="map-head">
+          <div>
+            <div class="muted">Карта на пътуването</div>
+            <h2 id="map-title">Изберете маршрут</h2>
+          </div>
+          <span class="badge" id="map-badge" hidden></span>
+        </div>
+        <div id="map"></div>
+        <div id="alternatives" class="alt-row" hidden></div>
+      </section>
+    </aside>
+  </main>
+
+  <div id="prompt" role="dialog" aria-live="assertive" hidden>
+    <div class="sheet">
+      <img id="prompt-img" alt="" hidden>
+      <div class="sheet-body">
+        <h3 id="prompt-title"></h3>
+        <div id="prompt-text"></div>
+        <div class="sheet-actions">
+          <button type="button" id="prompt-yes" class="primary">Да</button>
+          <button type="button" id="prompt-no" class="secondary">Не</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
