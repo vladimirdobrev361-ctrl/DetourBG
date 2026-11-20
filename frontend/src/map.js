@@ -5,10 +5,18 @@ import { icon, hazardIcon } from './icons.js';
 const L = window.L;
 
 export const map = L.map('map', { zoomControl: true }).setView([42.75, 25.3], 7);
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 18,
-  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-}).addTo(map);
+const OSM = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+const BASEMAPS = {
+  'OpenStreetMap (DE)': L.tileLayer('https://tile.openstreetmap.de/{z}/{x}/{y}.png', { maxZoom: 18, attribution: OSM }),
+  'OpenStreetMap': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: OSM, referrerPolicy: 'strict-origin-when-cross-origin',
+  }),
+  'Esri': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, attribution: 'Tiles © Esri',
+  }),
+};
+BASEMAPS['OpenStreetMap (DE)'].addTo(map);
+L.control.layers(BASEMAPS, null, { position: 'topright' }).addTo(map);
 
 const layers = {
   alts: L.layerGroup().addTo(map),
